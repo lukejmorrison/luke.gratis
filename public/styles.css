@@ -1,0 +1,225 @@
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, Aptos, Roboto, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+
+  --color-background: #09111a;
+  --color-text: #e7ebf0;
+  --color-text-subtle: #9aa6b2;
+  --color-accent: #2f7df6;
+  --color-accent-strong: #1f64cf;
+  --color-gold: #f49b1d;
+  --color-gold-soft: #d7b26d;
+  --color-border: rgba(231, 235, 240, 0.16);
+  --color-surface: rgba(231, 235, 240, 0.06);
+
+  --content-width: 40rem;
+  --header-width: 52rem;
+
+  --space-small: 0.5rem;
+  --space-medium: 1rem;
+  --space-neutral: 1.5rem;
+  --space-large: 2rem;
+  --space-x-large: 3rem;
+  --space-xx-large: 4.5rem;
+
+  --transition: 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: var(--space-xx-large) var(--space-large);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-background);
+}
+
+header,
+article,
+footer {
+  max-width: var(--content-width);
+  margin-inline: auto;
+}
+
+header {
+  margin-bottom: var(--space-x-large);
+  text-align: center;
+}
+
+body.home header {
+  max-width: var(--header-width);
+}
+
+header p {
+  color: var(--color-text-subtle);
+  text-wrap: balance;
+}
+
+header a,
+header a:visited {
+  color: var(--color-text-subtle);
+  text-decoration-color: var(--color-border);
+}
+
+@media (hover: hover) {
+  header a:hover {
+    color: var(--color-gold);
+  }
+}
+
+img.avatar {
+  display: block;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto var(--space-neutral);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-gold);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+h1 {
+  margin: 0 0 var(--space-medium);
+  font-size: clamp(1.9rem, 5.5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+body.home h1 {
+  font-size: clamp(1.55rem, 4.6vw, 2rem);
+  letter-spacing: 0.045em;
+}
+
+h1 .initial {
+  color: var(--color-gold);
+}
+
+h2 {
+  margin: var(--space-x-large) 0 var(--space-small);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0 0 var(--space-medium);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.15em;
+  transition: color var(--transition);
+}
+
+body.home a {
+  white-space: nowrap;
+}
+
+a:visited {
+  color: var(--color-accent);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    color: var(--color-gold-soft);
+  }
+}
+
+article img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-block: var(--space-small);
+  border-radius: 8px;
+}
+
+figure {
+  margin: var(--space-large) 0;
+}
+
+figure img.portrait {
+  width: min(100%, 400px);
+  margin-inline: auto;
+}
+
+figure img.mark {
+  width: min(100%, 168px);
+  margin-inline: auto;
+  border-radius: 0;
+  image-rendering: pixelated;
+}
+
+figcaption {
+  margin-top: var(--space-small);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+}
+
+footer {
+  margin-top: var(--space-xx-large);
+  padding-top: var(--space-large);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+}
+
+footer a,
+footer a:visited {
+  color: var(--color-text-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a {
+    transition: none;
+  }
+}
+
+@media screen and (max-width: 40rem) {
+  body {
+    padding: var(--space-large) var(--space-neutral);
+    font-size: 17px;
+    word-wrap: break-word;
+  }
+
+  img.avatar {
+    width: 104px;
+    height: 104px;
+  }
+
+  header p {
+    text-align: left;
+  }
+
+  body.home a {
+    white-space: normal;
+  }
+
+  h2 {
+    margin-top: var(--space-large);
+  }
+}
