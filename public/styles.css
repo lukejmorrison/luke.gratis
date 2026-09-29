@@ -362,6 +362,7 @@ body.is-admin [contenteditable="true"]:focus {
 .admin-desk textarea,
 .link-row input {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.55rem 0.7rem;

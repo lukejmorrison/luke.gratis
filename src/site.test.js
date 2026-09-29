@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readSession, signSession } from "./auth.js";
-import { defaultSite, normalizeSite, renderPage, sanitizeInline } from "./site.js";
+import { defaultSite, normalizeSite, renderLogin, renderPage, sanitizeInline } from "./site.js";
 
 test("public homepage keeps the story and hides the editor", () => {
   const html = renderPage(defaultSite(), "home");
@@ -43,6 +43,14 @@ test("a saved site round-trips without losing a paragraph", () => {
   assert.equal(saved.links.length, 1);
   const again = normalizeSite(saved).site;
   assert.equal(again.pages[0].blocks[0].html, saved.pages[0].blocks[0].html);
+});
+
+test("the password box is not grouped with the two-factor label", () => {
+  const html = renderLogin();
+  assert.match(html, /autocomplete="on"/);
+  assert.match(html, /<label for="password">Password\s*<input id="password" name="password" type="password" autocomplete="current-password"/);
+  assert.match(html, /<label for="totp">Two-factor code\s*<input id="totp" name="totp" type="text"/);
+  assert.doesNotMatch(html, /id="password"[^>]*>\s*<label for="totp"/);
 });
 
 test("session cookie round-trips only before it expires", async () => {

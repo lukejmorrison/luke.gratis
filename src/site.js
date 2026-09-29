@@ -566,13 +566,16 @@ export function renderLogin() {
     <img src="/images/helmet.jpg" width="96" height="96" class="avatar" alt="">
     <h1>Admin</h1>
     <p>Sign in with your <a href="https://apps.wizwam.com/login/">apps.wizwam.com</a> account. Visitors never see this page.</p>
-    <form id="login-form">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" autocomplete="username" required value="${ADMIN_EMAIL}">
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required>
-      <label for="totp">Two-factor code</label>
-      <input id="totp" name="totp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Leave blank if you have not turned this on">
+    <form id="login-form" autocomplete="on">
+      <label for="email">Email
+        <input id="email" name="email" type="email" autocomplete="username" required value="${ADMIN_EMAIL}">
+      </label>
+      <label for="password">Password
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <label for="totp">Two-factor code
+        <input id="totp" name="totp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Leave blank if you have not turned this on">
+      </label>
       <p class="msg" id="login-msg" role="status"></p>
       <button type="submit">Sign in</button>
     </form>
