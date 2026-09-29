@@ -1,13 +1,5 @@
 import { clearCookie, cookieValue, readSession, sessionCookie, signSession } from "./auth.js";
-import {
-  ADMIN_EMAIL,
-  defaultSite,
-  normalizeSite,
-  renderAdmin,
-  renderLogin,
-  renderNotFound,
-  renderPage,
-} from "./site.js";
+import { defaultSite, normalizeSite, renderAdmin, renderLogin, renderNotFound, renderPage } from "./site.js";
 
 const SESSION_TTL = 60 * 60 * 12;
 
@@ -88,15 +80,26 @@ async function currentSession(request, env) {
   return readSession(env.SESSION_SECRET, token);
 }
 
+function adminEmail(env) {
+  return String(env.ADMIN_EMAIL || "").trim().toLowerCase();
+}
+
+function authOrigin(env) {
+  const origin = String(env.AUTH_ORIGIN || "").trim().replace(/\/$/, "");
+  if (!origin.startsWith("https://")) return "";
+  return origin;
+}
+
 async function isAdmin(request, env) {
+  const email = adminEmail(env);
   const session = await currentSession(request, env);
-  return session?.email === ADMIN_EMAIL;
+  return Boolean(email) && session?.email === email;
 }
 
 async function adminPage(request, env) {
   if (!(await isAdmin(request, env))) return html(renderLogin());
   const site = await loadSite(env);
-  return html(renderAdmin(site, { email: ADMIN_EMAIL }));
+  return html(renderAdmin(site, { email: adminEmail(env) }));
 }
 
 async function api(request, env, path) {
@@ -108,8 +111,10 @@ async function api(request, env, path) {
 }
 
 async function login(request, env) {
-  if (!env.SESSION_SECRET || !env.LUKE_GRATIS_BRIDGE_SECRET) {
-    return json({ error: "Admin sign-in is not configured yet." }, 500);
+  const allowed = adminEmail(env);
+  const origin = authOrigin(env);
+  if (!env.SESSION_SECRET || !env.LUKE_GRATIS_BRIDGE_SECRET || !allowed || !origin) {
+    return json({ error: "Sign-in is unavailable." }, 500);
   }
   let body;
   try {
@@ -120,14 +125,14 @@ async function login(request, env) {
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
   const twoFactorCode = String(body.twoFactorCode || "").trim();
-  if (email !== ADMIN_EMAIL || !password) return json({ error: "Invalid credentials." }, 401);
+  if (email !== allowed || !password) return json({ error: "Invalid credentials." }, 401);
 
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
   if (await attemptCount(env, ip) >= 8) return json({ error: "Too many sign-in attempts. Wait a few minutes." }, 429);
 
   let upstream;
   try {
-    upstream = await fetch("https://apps.wizwam.com/api/auth/login", {
+    upstream = await fetch(`${origin}/api/auth/login`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -137,22 +142,22 @@ async function login(request, env) {
       body: JSON.stringify({ email, password, twoFactorCode, rememberMe: false }),
     });
   } catch {
-    return json({ error: "Wizwam sign-in is unreachable right now." }, 502);
+    return json({ error: "Sign-in is unavailable." }, 502);
   }
 
   const data = await upstream.json().catch(() => ({}));
   if (!upstream.ok) {
     await recordAttempt(env, ip);
-    const message = safeError(data.error) || "Invalid credentials.";
-    return json({ error: message, requiresTwoFactor: Boolean(data.requiresTwoFactor) }, upstream.status);
+    if (upstream.status === 429) return json({ error: "Too many sign-in attempts. Wait a few minutes." }, 429);
+    return json({ error: "Invalid credentials." }, 401);
   }
 
   const userEmail = String(data.user?.email || "").toLowerCase();
-  if (userEmail !== ADMIN_EMAIL) return json({ error: "That Wizwam account cannot edit this site." }, 403);
-  await closeUpstreamSession(upstream, data.csrfToken);
+  if (userEmail !== allowed) return json({ error: "Invalid credentials." }, 401);
+  await closeUpstreamSession(env, upstream, data.csrfToken);
 
-  const token = await signSession(env.SESSION_SECRET, ADMIN_EMAIL, SESSION_TTL);
-  return json({ ok: true, email: ADMIN_EMAIL }, 200, { "set-cookie": sessionCookie(token, SESSION_TTL) });
+  const token = await signSession(env.SESSION_SECRET, allowed, SESSION_TTL);
+  return json({ ok: true }, 200, { "set-cookie": sessionCookie(token, SESSION_TTL) });
 }
 
 async function logout() {
@@ -193,20 +198,16 @@ async function recordAttempt(env, ip) {
   await env.SITE.put(`login:${ip}`, String(next), { expirationTtl: 600 });
 }
 
-function safeError(value) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  if (!text || text.length > 180) return "";
-  return text;
-}
-
-async function closeUpstreamSession(response, csrfToken) {
+async function closeUpstreamSession(env, response, csrfToken) {
+  const origin = authOrigin(env);
+  if (!origin) return;
   const cookies = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
   const session = cookies
     .map((cookie) => cookie.match(/^wizwam_session=([^;]+)/)?.[1] || "")
     .find(Boolean);
   if (!session) return;
   try {
-    await fetch("https://apps.wizwam.com/api/auth/logout", {
+    await fetch(`${origin}/api/auth/logout`, {
       method: "POST",
       headers: {
         cookie: `wizwam_session=${session}`,
@@ -216,6 +217,6 @@ async function closeUpstreamSession(response, csrfToken) {
       body: "{}",
     });
   } catch {
-    // The luke.gratis session is already separate. Leaving the short Wizwam session is not fatal.
+    // The editor session is already separate.
   }
 }

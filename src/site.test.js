@@ -12,6 +12,7 @@ test("public homepage keeps the story and hides the editor", () => {
   assert.match(html, /<span class="initial">L<\/span>UKE/);
   assert.doesNotMatch(html, /contenteditable/);
   assert.doesNotMatch(html, /admin-bar/);
+  assert.doesNotMatch(html, /data-remove/);
   assert.doesNotMatch(html, /<script/);
 });
 
@@ -20,6 +21,8 @@ test("admin render is editable and still has the story", () => {
   assert.match(html, /contenteditable="true"/);
   assert.match(html, /data-publish/);
   assert.match(html, /Mr\. Major/);
+  assert.match(html, /data-remove>Delete</);
+  assert.doesNotMatch(html, /data-remove>Remove</);
 });
 
 test("inline html keeps links and drops scripts", () => {
@@ -82,14 +85,19 @@ test("the password box is not grouped with the two-factor label", () => {
   assert.match(html, /autocomplete="on"/);
   assert.match(html, /<label for="password">Password\s*<input id="password" name="password" type="password" autocomplete="current-password"/);
   assert.match(html, /<label for="totp">Two-factor code\s*<input id="totp" name="totp" type="text"/);
+  assert.match(html, /You know what to do/);
+  assert.doesNotMatch(html, /Leave blank if you have not turned this on/);
+  assert.doesNotMatch(html, /apps\.wizwam\.com/);
+  assert.doesNotMatch(html, /luke@wizwam\.com/);
+  assert.doesNotMatch(html, /value="/);
   assert.doesNotMatch(html, /id="password"[^>]*>\s*<label for="totp"/);
 });
 
 test("session cookie round-trips only before it expires", async () => {
   const secret = "test-secret-test-secret-test-secret";
-  const token = await signSession(secret, "luke@wizwam.com", 60);
+  const token = await signSession(secret, "editor@example.com", 60);
   const session = await readSession(secret, token);
-  assert.equal(session.email, "luke@wizwam.com");
+  assert.equal(session.email, "editor@example.com");
   assert.equal(await readSession("other-secret-other-secret-other", token), null);
   assert.equal(await readSession(secret, `${token}x`), null);
 });

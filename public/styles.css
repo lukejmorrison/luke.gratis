@@ -319,12 +319,20 @@ body.is-admin {
 
 body.is-admin .block {
   position: relative;
+  scroll-margin-top: var(--admin-offset, 4.5rem);
 }
 
 body.is-admin .block-tools {
   display: flex;
   gap: 0.35rem;
   margin-bottom: 0.35rem;
+  position: sticky;
+  top: var(--admin-offset, 4.5rem);
+  z-index: 4;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.2rem 0.45rem 0.2rem 0;
+  background: var(--color-background);
 }
 
 body.is-admin .block-tools button,
@@ -339,6 +347,11 @@ body.is-admin .block-tools button,
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
   cursor: pointer;
+}
+
+body.is-admin .block-tools button[data-remove] {
+  color: var(--color-text);
+  border-color: var(--color-gold);
 }
 
 body.is-admin [contenteditable="true"] {
@@ -465,6 +478,14 @@ dialog::backdrop {
 @media screen and (max-width: 40rem) {
   body.is-admin {
     padding-top: 8.5rem;
+  }
+
+  body.is-admin .block {
+    scroll-margin-top: var(--admin-offset, 9.5rem);
+  }
+
+  body.is-admin .block-tools {
+    top: var(--admin-offset, 9.5rem);
   }
 
   .link-row {

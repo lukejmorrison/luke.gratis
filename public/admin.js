@@ -34,7 +34,7 @@ function wireLogin() {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const message = document.getElementById("login-msg");
-    message.textContent = "Checking with Wizwam…";
+    message.textContent = "Checking…";
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -47,7 +47,6 @@ function wireLogin() {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       message.textContent = data.error || "Sign-in failed.";
-      if (data.requiresTwoFactor) form.totp.focus();
       return;
     }
     location.href = "/";
@@ -55,7 +54,7 @@ function wireLogin() {
 }
 
 function blockTemplate(kind) {
-  const tools = `<div class="block-tools" contenteditable="false"><button type="button" data-move="up">Up</button><button type="button" data-move="down">Down</button><button type="button" data-remove>Remove</button></div>`;
+  const tools = `<div class="block-tools" contenteditable="false"><button type="button" data-move="up">Up</button><button type="button" data-move="down">Down</button><button type="button" data-remove>Delete</button></div>`;
   if (kind === "h2") return `<div class="block">${tools}<h2 data-block="h2" contenteditable="true">New heading</h2></div>`;
   if (kind === "figure") {
     return `<div class="block">${tools}<figure data-block="figure" data-variant=""><img src="/images/helmet.jpg" alt=""><figcaption data-caption contenteditable="true">Caption</figcaption><label class="fig-field">Image address <input data-src value="/images/helmet.jpg"></label><label class="fig-field">Description <input data-alt value=""></label></figure></div>`;
@@ -103,6 +102,20 @@ function collectPage(site) {
   const footer = document.querySelector("[data-footer]");
   if (footer) site.footerHtml = footer.innerHTML;
   return site;
+}
+
+function pinBlockTools() {
+  const bar = document.querySelector(".admin-bar");
+  if (!bar) return;
+  const apply = () => {
+    const height = Math.ceil(bar.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--admin-offset", `${height + 8}px`);
+  };
+  apply();
+  const observer = new ResizeObserver(apply);
+  observer.observe(bar);
+  observer.observe(document.documentElement);
+  window.addEventListener("resize", apply);
 }
 
 function wireEditor() {
@@ -320,6 +333,8 @@ function wireEditor() {
     range.insertNode(abbr);
     mark();
   });
+
+  pinBlockTools();
 }
 
 function wireDesk() {

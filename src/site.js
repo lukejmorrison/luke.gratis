@@ -1,5 +1,3 @@
-export const ADMIN_EMAIL = "luke@wizwam.com";
-
 export const THEMES = [
   { id: "ink", label: "Ink", note: "The dark Wizwam desk." },
   { id: "paper", label: "Paper", note: "A light page, closer to a printed essay." },
@@ -409,7 +407,7 @@ function blockHtml(block, admin) {
 }
 
 function tools() {
-  return `<div class="block-tools" contenteditable="false"><button type="button" data-move="up">Up</button><button type="button" data-move="down">Down</button><button type="button" data-remove>Remove</button></div>`;
+  return `<div class="block-tools" contenteditable="false"><button type="button" data-move="up">Up</button><button type="button" data-move="down">Down</button><button type="button" data-remove>Delete</button></div>`;
 }
 
 function withTools(html, admin) {
@@ -537,7 +535,7 @@ export function renderNotFound(site) {
   }).replace("<head>", '<head>\n  <meta name="robots" content="noindex">');
 }
 
-export function renderAdmin(site, { email = ADMIN_EMAIL } = {}) {
+export function renderAdmin(site, { email = "" } = {}) {
   const pages = site.pages
     .map(
       (page) => `<li data-slug="${escapeHtml(page.slug)}">
@@ -615,16 +613,16 @@ export function renderLogin() {
   <main class="login-card">
     <img src="/images/helmet.jpg" width="96" height="96" class="avatar" alt="">
     <h1>Admin</h1>
-    <p>Sign in with your <a href="https://apps.wizwam.com/login/">apps.wizwam.com</a> account. Visitors never see this page.</p>
+    <p>You know what to do</p>
     <form id="login-form" autocomplete="on">
       <label for="email">Email
-        <input id="email" name="email" type="email" autocomplete="username" required value="${ADMIN_EMAIL}">
+        <input id="email" name="email" type="email" autocomplete="username" required>
       </label>
       <label for="password">Password
         <input id="password" name="password" type="password" autocomplete="current-password" required>
       </label>
       <label for="totp">Two-factor code
-        <input id="totp" name="totp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Leave blank if you have not turned this on">
+        <input id="totp" name="totp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
       </label>
       <p class="msg" id="login-msg" role="status"></p>
       <button type="submit">Sign in</button>
