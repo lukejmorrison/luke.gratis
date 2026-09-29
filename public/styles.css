@@ -223,3 +223,241 @@ footer a:visited {
     margin-top: var(--space-large);
   }
 }
+
+body.theme-paper {
+  --color-background: #f7f5f0;
+  --color-text: #1c1915;
+  --color-text-subtle: #5c564c;
+  --color-accent: #0b57d0;
+  --color-accent-strong: #0842a0;
+  --color-gold: #8a5a00;
+  --color-gold-soft: #6f4700;
+  --color-border: rgba(28, 25, 21, 0.18);
+  --color-surface: rgba(28, 25, 21, 0.05);
+  color-scheme: light;
+}
+
+body.theme-field {
+  --color-background: #f3efe4;
+  --color-text: #1a1814;
+  --color-text-subtle: #5e584c;
+  --color-accent: #8a5a00;
+  --color-accent-strong: #6f4700;
+  --color-gold: #8a5a00;
+  --color-gold-soft: #6f4700;
+  --color-border: rgba(26, 24, 20, 0.16);
+  --color-surface: rgba(138, 90, 0, 0.08);
+  color-scheme: light;
+}
+
+body.is-admin {
+  padding-top: 5.25rem;
+}
+
+.admin-bar {
+  position: fixed;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  background: #101820;
+  color: #e7ebf0;
+  border-bottom: 2px solid #f49b1d;
+  font-size: 0.85rem;
+}
+
+.admin-bar a,
+.admin-bar button,
+.login-card button,
+.admin-desk button {
+  font: inherit;
+  color: #09111a;
+  background: #f49b1d;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-bar a {
+  white-space: nowrap;
+}
+
+.admin-bar button[aria-pressed="true"] {
+  outline: 2px solid #e7ebf0;
+}
+
+.admin-mark {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f49b1d;
+}
+
+.admin-status.is-error {
+  color: #ffb4a8;
+}
+
+body.is-admin .block {
+  position: relative;
+}
+
+body.is-admin .block-tools {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+body.is-admin .block-tools button,
+.add-row button,
+.dialog-actions button,
+.link-row button {
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+}
+
+body.is-admin [contenteditable="true"] {
+  outline: 1px dashed transparent;
+  border-radius: 4px;
+}
+
+body.is-admin [contenteditable="true"]:focus {
+  outline-color: var(--color-gold);
+}
+
+.add-row,
+.publish-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 1.5rem 0;
+}
+
+.fig-field,
+.login-card label,
+.admin-desk label,
+.link-row {
+  display: block;
+  margin: 0.6rem 0;
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+}
+
+.fig-field input,
+.login-card input,
+.admin-desk input,
+.admin-desk textarea,
+.link-row input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.login-card {
+  max-width: 28rem;
+  margin: 8vh auto;
+}
+
+.login-card .avatar {
+  width: 96px;
+  height: 96px;
+}
+
+.login-card .msg {
+  min-height: 1.4em;
+  color: var(--color-gold-soft);
+}
+
+.themes {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.theme-choice {
+  display: block;
+  margin: 0.4rem 0;
+}
+
+.admin-desk textarea {
+  min-height: 5rem;
+}
+
+.link-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.site-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  justify-content: center;
+}
+
+.kicker {
+  color: var(--color-text-subtle);
+  margin-bottom: 0.25rem;
+}
+
+dialog {
+  max-width: 24rem;
+  width: calc(100% - 2rem);
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.hint,
+.empty {
+  color: var(--color-text-subtle);
+}
+
+#page-list {
+  padding-left: 1.1rem;
+}
+
+#page-list li {
+  margin: 0.7rem 0;
+}
+
+@media screen and (max-width: 40rem) {
+  body.is-admin {
+    padding-top: 8.5rem;
+  }
+
+  .link-row {
+    grid-template-columns: 1fr;
+  }
+
+  .site-links {
+    justify-content: flex-start;
+  }
+}

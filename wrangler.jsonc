@@ -10,6 +10,9 @@
     "not_found_handling": "404-page",
     "run_worker_first": true
   },
+  "kv_namespaces": [
+    { "binding": "SITE", "id": "c9d8a2b3361041d899d154fd4f31aa9f" }
+  ],
   "routes": [
     { "pattern": "luke.gratis", "custom_domain": true },
     { "pattern": "www.luke.gratis", "custom_domain": true }
