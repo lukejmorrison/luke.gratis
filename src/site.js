@@ -130,10 +130,30 @@ function decodeBasic(value) {
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&amp;/gi, "&");
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/&amp;/gi, "&")
+      .replace(/&nbsp;|&#160;|&#x0*a0;/gi, " ")
+      .replace(/\u00a0/g, " ");
   }
   return cur;
+}
+
+// The editor saves non-breaking spaces as &nbsp;. Once those are escaped they
+// show up as the letters "&nbsp;". Chrome's createLink also leaves the first
+// selected letter sitting just outside the new anchor.
+function tidyEditableHtml(value) {
+  let prev = "";
+  let cur = String(value ?? "");
+  while (cur !== prev) {
+    prev = cur;
+    cur = cur
+      .replace(/&amp;nbsp;|&#160;|&#x0*a0;/gi, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\u00a0/g, " ");
+  }
+  return cur
+    .replace(/(^|[\s])(\p{L})(<a\b[^<>]*>)(\p{L})/gu, (_, boundary, letter, open, next) => `${boundary}${open}${letter}${next}`)
+    .replace(/[ \t]+(?=<br\b)/g, "");
 }
 
 function safeHref(raw) {
@@ -168,7 +188,7 @@ function safeSrc(raw) {
 }
 
 export function sanitizeInline(input) {
-  const src = String(input ?? "").slice(0, 8000);
+  const src = tidyEditableHtml(String(input ?? "").slice(0, 8000));
   const re = /<\/?([a-zA-Z0-9]+)(\s[^<>]*)?\s*\/?>/g;
   let out = "";
   let last = 0;

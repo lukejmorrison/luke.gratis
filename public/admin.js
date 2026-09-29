@@ -224,18 +224,30 @@ function wireEditor() {
   linkButton.type = "button";
   linkButton.dataset.link = "1";
   linkButton.textContent = "Link";
+  linkButton.addEventListener("mousedown", (event) => event.preventDefault());
   document.querySelector("[data-publish]")?.before(linkButton);
 
   function openLinkDialog() {
     linkDialog.showModal();
   }
   linkDialog.addEventListener("close", () => {
-    if (linkDialog.returnValue !== "ok" || !document.__savedRange) return;
+    const range = document.__savedRange;
     const href = linkDialog.querySelector("input").value.trim();
-    const selection = getSelection();
-    selection.removeAllRanges();
-    selection.addRange(document.__savedRange);
-    document.execCommand("createLink", false, href);
+    const compact = href.toLowerCase().replace(/[\u0000-\u0020]+/g, "");
+    if (linkDialog.returnValue !== "ok" || !range || range.collapsed || !href) return;
+    if (compact.startsWith("javascript:") || compact.startsWith("data:")) return;
+    const host = range.commonAncestorContainer;
+    const root = (host.nodeType === 1 ? host : host.parentElement)?.closest("[contenteditable='true']");
+    if (!root || !range.startContainer.isConnected) return;
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", href);
+    const contents = range.extractContents();
+    if (!contents.textContent.trim()) {
+      range.insertNode(contents);
+      return;
+    }
+    anchor.append(contents);
+    range.insertNode(anchor);
     mark();
   });
 }

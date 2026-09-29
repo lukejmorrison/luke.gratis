@@ -45,6 +45,15 @@ test("a saved site round-trips without losing a paragraph", () => {
   assert.equal(again.pages[0].blocks[0].html, saved.pages[0].blocks[0].html);
 });
 
+test("published intro keeps spaces and whole linked words", () => {
+  const broken = 'I\'m a naturally born Canadian&amp;nbsp;<a href="https://luke.gratis/#canada">🇨🇦</a>&amp;nbsp;with British, Welsh, Norse and Scottish roots<br><br>🦎 A p<a href="#inspector">rofessional fruit inspector</a>&amp;nbsp;🖖&amp;nbsp;The f<a href="#wizwam">ounder of Wizwam</a>&amp;nbsp;💌&amp;nbsp;M<a href="#omarchy">aker of tools for Omarchy</a>&amp;nbsp;🦦&amp;nbsp;<br><br>🦝&amp;nbsp;🦝&amp;nbsp;🦝 Self professed AI enthusiast. User of 🦞n 🤖 and water of 🚂&amp;nbsp;<br><br>I aspire to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>!';
+  const fixed = sanitizeInline(broken);
+  assert.equal(fixed, 'I\'m a naturally born Canadian <a href="https://luke.gratis/#canada">🇨🇦</a> with British, Welsh, Norse and Scottish roots<br><br>🦎 A <a href="#inspector">professional fruit inspector</a> 🖖 The <a href="#wizwam">founder of Wizwam</a> 💌 <a href="#omarchy">Maker of tools for Omarchy</a> 🦦<br><br>🦝 🦝 🦝 Self professed AI enthusiast. User of 🦞n 🤖 and water of 🚂<br><br>I aspire to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>!');
+  assert.equal(sanitizeInline(fixed), fixed);
+  assert.equal(sanitizeInline('See <a href="#x">more</a>'), 'See <a href="#x">more</a>');
+  assert.doesNotMatch(fixed, /nbsp/);
+});
+
 test("the password box is not grouped with the two-factor label", () => {
   const html = renderLogin();
   assert.match(html, /autocomplete="on"/);
