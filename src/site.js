@@ -7,6 +7,8 @@ export const THEMES = [
 ];
 
 const RESERVED_SLUGS = new Set(["admin", "api", "images", "assets", "home"]);
+const WIZWAM_NOTE = "“Wiz” as in wizard. “Wham” as in wham e.g. Wizwām";
+const WIZWAM_WORD = `<abbr title="${WIZWAM_NOTE}">Wizwam</abbr>`;
 
 export function defaultSite() {
   return {
@@ -19,13 +21,13 @@ export function defaultSite() {
       avatar: "/images/helmet.jpg",
       avatarAlt: "Luke Morrison",
       introHtml:
-        'I am a <a href="#canada">Canadian</a>, a <a href="#inspector">professional fruit inspector</a>, <a href="#wizwam">founder of Wizwam</a>, <a href="#omarchy">maker of small tools for Omarchy</a>, and someone who aspires to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>.',
+        `I am a <a href="#canada">Canadian</a>, a <a href="#inspector">professional fruit inspector</a>, <a href="#wizwam">founder of ${WIZWAM_WORD}</a>, <a href="#omarchy">maker of small tools for Omarchy</a>, and someone who aspires to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>.`,
     },
     home: {
       blocks: [
         {
           type: "p",
-          html: 'I write on <a rel="me" href="https://x.com/lukejmorrison">X</a>. The code is on <a rel="me" href="https://github.com/lukejmorrison">GitHub</a>. The company is <a href="https://www.wizwam.com">Wizwam</a>. You can also <a href="https://www.buymeacoffee.com/lukejmorrison">buy me a coffee</a>.',
+          html: `I write on <a rel="me" href="https://x.com/lukejmorrison">X</a>. The code is on <a rel="me" href="https://github.com/lukejmorrison">GitHub</a>. The company is <a href="https://www.wizwam.com">${WIZWAM_WORD}</a>. You can also <a href="https://www.buymeacoffee.com/lukejmorrison">buy me a coffee</a>.`,
         },
         { type: "h2", id: "canada", text: "Canadian" },
         {
@@ -54,10 +56,10 @@ export function defaultSite() {
           type: "p",
           html: "Tear the bark and you wreck next year’s fruit. Drop the apple or dump the basket and you wreck this year’s. Mr. Major could have been that guy. Inspect the produce. That is proof of good work, and you can see it if you know what to look for. The bruise and the internal blemish are the part you only find later.",
         },
-        { type: "h2", id: "wizwam", text: "Founder of Wizwam" },
+        { type: "h2", id: "wizwam", text: `Founder of ${WIZWAM_WORD}` },
         {
           type: "p",
-          html: '<a href="https://www.wizwam.com">Wizwam</a> is the company. Pronounced Wiz Waam. “Wiz” as in wizard. “Waam” rhymes with calm. The mark is a pixel hat: blue cloth, a gold band, a navy outline, on ink.',
+          html: `<a href="https://www.wizwam.com">${WIZWAM_WORD}</a> is the company. Pronounced wiz-wham. “Wiz” as in wizard. “Wham” as in wham. The mark is a pixel hat: blue cloth, a gold band, a navy outline, on ink.`,
         },
         {
           type: "p",
@@ -101,7 +103,7 @@ export function defaultSite() {
           type: "figure",
           src: "/images/wizwam-hat.png",
           alt: "The Wizwam hat, a pixel mark in blue with a gold band and a navy outline.",
-          caption: "The Wizwam mark.",
+          caption: `The ${WIZWAM_WORD} mark.`,
           variant: "mark",
         },
       ],
@@ -156,6 +158,19 @@ function tidyEditableHtml(value) {
     .replace(/[ \t]+(?=<br\b)/g, "");
 }
 
+function attrValue(source, name) {
+  const match = String(source || "").match(new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
+  return match?.slice(1).find((item) => item != null) || "";
+}
+
+function safeTitle(raw) {
+  return decodeBasic(String(raw || ""))
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 300);
+}
+
 function safeHref(raw) {
   const value = String(raw || "").trim();
   if (!value || value.length > 500) return "";
@@ -187,6 +202,13 @@ function safeSrc(raw) {
   return "";
 }
 
+function emitText(chunk, stack) {
+  const text = escapeHtml(decodeBasic(chunk));
+  if (stack.includes("abbr")) return text;
+  const note = escapeHtml(WIZWAM_NOTE);
+  return text.replace(/Wizwām|Wizwam/g, `<abbr title="${note}">Wizwam</abbr>`);
+}
+
 export function sanitizeInline(input) {
   const src = tidyEditableHtml(String(input ?? "").slice(0, 8000));
   const re = /<\/?([a-zA-Z0-9]+)(\s[^<>]*)?\s*\/?>/g;
@@ -195,11 +217,11 @@ export function sanitizeInline(input) {
   let match;
   const stack = [];
   while ((match = re.exec(src))) {
-    out += escapeHtml(decodeBasic(src.slice(last, match.index)));
+    out += emitText(src.slice(last, match.index), stack);
     last = match.index + match[0].length;
     const tag = match[1].toLowerCase();
     const closing = match[0].startsWith("</");
-    if (tag !== "a" && tag !== "strong" && tag !== "em" && tag !== "br") continue;
+    if (tag !== "a" && tag !== "abbr" && tag !== "strong" && tag !== "em" && tag !== "br") continue;
     if (tag === "br") {
       if (!closing) out += "<br>";
       continue;
@@ -209,6 +231,13 @@ export function sanitizeInline(input) {
         stack.pop();
         out += `</${tag}>`;
       }
+      continue;
+    }
+    if (tag === "abbr") {
+      const title = safeTitle(attrValue(match[2] || "", "title"));
+      if (!title) continue;
+      stack.push("abbr");
+      out += `<abbr title="${escapeHtml(title)}">`;
       continue;
     }
     if (tag === "a") {
@@ -222,7 +251,7 @@ export function sanitizeInline(input) {
     stack.push(tag);
     out += `<${tag}>`;
   }
-  out += escapeHtml(decodeBasic(src.slice(last)));
+  out += emitText(src.slice(last), stack);
   while (stack.length) out += `</${stack.pop()}>`;
   return out;
 }
@@ -262,9 +291,10 @@ function cleanBlocks(blocks) {
     if (block.type === "p") {
       cleaned.push({ type: "p", html: sanitizeInline(block.html) });
     } else if (block.type === "h2") {
-      const text = plainText(block.text, 160);
-      if (!text) continue;
-      cleaned.push({ type: "h2", id: cleanId(block.id, slugify(text)), text });
+      const text = sanitizeInline(block.text);
+      const label = plainText(text, 160);
+      if (!label) continue;
+      cleaned.push({ type: "h2", id: cleanId(block.id, slugify(label)), text });
     } else if (block.type === "figure") {
       const src = safeSrc(block.src);
       if (!src) continue;
@@ -273,7 +303,7 @@ function cleanBlocks(blocks) {
         type: "figure",
         src,
         alt: plainText(block.alt, 300),
-        caption: plainText(block.caption, 200),
+        caption: sanitizeInline(block.caption),
         variant,
       });
     }
@@ -368,14 +398,14 @@ function blockHtml(block, admin) {
   if (block.type === "h2") {
     const editable = admin ? ' contenteditable="true"' : "";
     const id = block.id ? ` id="${escapeHtml(block.id)}" data-id="${escapeHtml(block.id)}"` : "";
-    return `<div class="block"><h2 data-block="h2"${id}${editable}>${escapeHtml(block.text)}</h2></div>`;
+    return `<div class="block"><h2 data-block="h2"${id}${editable}>${sanitizeInline(block.text)}</h2></div>`;
   }
   const variant = block.variant ? ` class="${escapeHtml(block.variant)}"` : "";
   const fields = admin
     ? `<label class="fig-field">Image address <input data-src value="${escapeHtml(block.src)}"></label><label class="fig-field">Description <input data-alt value="${escapeHtml(block.alt)}"></label>`
     : "";
   const captionEdit = admin ? ' contenteditable="true"' : "";
-  return `<div class="block"><figure data-block="figure" data-variant="${escapeHtml(block.variant || "")}"><img${variant} src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}"><figcaption data-caption${captionEdit}>${escapeHtml(block.caption)}</figcaption>${fields}</figure></div>`;
+  return `<div class="block"><figure data-block="figure" data-variant="${escapeHtml(block.variant || "")}"><img${variant} src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}"><figcaption data-caption${captionEdit}>${sanitizeInline(block.caption)}</figcaption>${fields}</figure></div>`;
 }
 
 function tools() {

@@ -77,12 +77,12 @@ function collectPage(site) {
   if (!article) return site;
   const blocks = [...article.querySelectorAll("[data-block]")].map((element) => {
     if (element.dataset.block === "p") return { type: "p", html: element.innerHTML };
-    if (element.dataset.block === "h2") return { type: "h2", id: element.dataset.id || "", text: element.innerText };
+    if (element.dataset.block === "h2") return { type: "h2", id: element.dataset.id || "", text: element.innerHTML };
     return {
       type: "figure",
       src: element.querySelector("[data-src]")?.value || element.querySelector("img")?.getAttribute("src") || "",
       alt: element.querySelector("[data-alt]")?.value || "",
-      caption: element.querySelector("[data-caption]")?.innerText || "",
+      caption: element.querySelector("[data-caption]")?.innerHTML || "",
       variant: element.dataset.variant || "",
     };
   });
@@ -160,6 +160,7 @@ function wireEditor() {
     }
     if (event.target.closest("[data-new-page]")) document.getElementById("new-page-dialog")?.showModal();
     if (event.target.closest("[data-link]")) openLinkDialog();
+    if (event.target.closest("[data-alt]")) openAltDialog();
   });
 
   document.getElementById("new-page-dialog")?.addEventListener("close", async () => {
@@ -248,6 +249,75 @@ function wireEditor() {
     }
     anchor.append(contents);
     range.insertNode(anchor);
+    mark();
+  });
+
+  const altDialog = document.createElement("dialog");
+  altDialog.id = "alt-dialog";
+  altDialog.innerHTML = `<form method="dialog"><h2>Alt text</h2><label>Shown on hover <input name="alt" maxlength="300" placeholder="“Wiz” as in wizard…"></label><p class="hint">Select a word first. Leave this blank to remove the note.</p><div class="dialog-actions"><button value="cancel">Cancel</button><button value="ok">Save</button></div></form>`;
+  document.body.append(altDialog);
+  const altButton = document.createElement("button");
+  altButton.type = "button";
+  altButton.dataset.alt = "1";
+  altButton.textContent = "Alt";
+  altButton.addEventListener("mousedown", (event) => event.preventDefault());
+  document.querySelector("[data-publish]")?.before(altButton);
+
+  function editableRoot(range) {
+    const host = range?.commonAncestorContainer;
+    if (!host) return null;
+    return (host.nodeType === 1 ? host : host.parentElement)?.closest("[contenteditable='true']");
+  }
+
+  function unwrap(node) {
+    const parent = node.parentNode;
+    while (node.firstChild) parent.insertBefore(node.firstChild, node);
+    node.remove();
+  }
+
+  function abbrInRange(range, root) {
+    const host = range.commonAncestorContainer;
+    const el = host.nodeType === 1 ? host : host.parentElement;
+    const abbr = el?.closest("abbr");
+    return abbr && root.contains(abbr) ? abbr : null;
+  }
+
+  function openAltDialog() {
+    const range = document.__savedRange;
+    const root = editableRoot(range);
+    const abbr = range && root ? abbrInRange(range, root) : null;
+    if (!root || (!abbr && range.collapsed)) {
+      setStatus("Select a word first.", true);
+      return;
+    }
+    altDialog.querySelector("input").value = abbr?.getAttribute("title") || "";
+    altDialog.showModal();
+  }
+
+  altDialog.addEventListener("close", () => {
+    if (altDialog.returnValue !== "ok") return;
+    const range = document.__savedRange;
+    const root = editableRoot(range);
+    if (!root || !range?.startContainer?.isConnected) return;
+    const alt = altDialog.querySelector("input").value.trim().replace(/\s+/g, " ").slice(0, 300);
+    const host = range.commonAncestorContainer.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+    const current = host?.closest("abbr");
+    if (current && root.contains(current)) {
+      if (alt) current.setAttribute("title", alt);
+      else unwrap(current);
+      mark();
+      return;
+    }
+    if (!alt || range.collapsed) return;
+    const abbr = document.createElement("abbr");
+    abbr.setAttribute("title", alt);
+    const contents = range.extractContents();
+    if (!contents.textContent.trim()) {
+      range.insertNode(contents);
+      return;
+    }
+    abbr.append(contents);
+    range.insertNode(abbr);
     mark();
   });
 }

@@ -137,6 +137,19 @@ a:visited {
   color: var(--color-accent);
 }
 
+abbr[title] {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--color-gold-soft);
+  cursor: help;
+}
+
+a abbr[title] {
+  text-decoration: none;
+  cursor: inherit;
+}
+
 a:focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;

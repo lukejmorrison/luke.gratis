@@ -48,10 +48,33 @@ test("a saved site round-trips without losing a paragraph", () => {
 test("published intro keeps spaces and whole linked words", () => {
   const broken = 'I\'m a naturally born Canadian&amp;nbsp;<a href="https://luke.gratis/#canada">🇨🇦</a>&amp;nbsp;with British, Welsh, Norse and Scottish roots<br><br>🦎 A p<a href="#inspector">rofessional fruit inspector</a>&amp;nbsp;🖖&amp;nbsp;The f<a href="#wizwam">ounder of Wizwam</a>&amp;nbsp;💌&amp;nbsp;M<a href="#omarchy">aker of tools for Omarchy</a>&amp;nbsp;🦦&amp;nbsp;<br><br>🦝&amp;nbsp;🦝&amp;nbsp;🦝 Self professed AI enthusiast. User of 🦞n 🤖 and water of 🚂&amp;nbsp;<br><br>I aspire to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>!';
   const fixed = sanitizeInline(broken);
-  assert.equal(fixed, 'I\'m a naturally born Canadian <a href="https://luke.gratis/#canada">🇨🇦</a> with British, Welsh, Norse and Scottish roots<br><br>🦎 A <a href="#inspector">professional fruit inspector</a> 🖖 The <a href="#wizwam">founder of Wizwam</a> 💌 <a href="#omarchy">Maker of tools for Omarchy</a> 🦦<br><br>🦝 🦝 🦝 Self professed AI enthusiast. User of 🦞n 🤖 and water of 🚂<br><br>I aspire to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>!');
+  assert.equal(fixed, 'I\'m a naturally born Canadian <a href="https://luke.gratis/#canada">🇨🇦</a> with British, Welsh, Norse and Scottish roots<br><br>🦎 A <a href="#inspector">professional fruit inspector</a> 🖖 The <a href="#wizwam">founder of <abbr title="“Wiz” as in wizard. “Wham” as in wham e.g. Wizwām">Wizwam</abbr></a> 💌 <a href="#omarchy">Maker of tools for Omarchy</a> 🦦<br><br>🦝 🦝 🦝 Self professed AI enthusiast. User of 🦞n 🤖 and water of 🚂<br><br>I aspire to be <a href="#helpful">truly helpful, truth-seeking, and fun</a>!');
   assert.equal(sanitizeInline(fixed), fixed);
   assert.equal(sanitizeInline('See <a href="#x">more</a>'), 'See <a href="#x">more</a>');
   assert.doesNotMatch(fixed, /nbsp/);
+});
+
+test("the name Wizwam carries its pronunciation", () => {
+  const once = sanitizeInline("Founder of Wizwām and Wizwam.com");
+  assert.match(once, /<abbr title="“Wiz” as in wizard\. “Wham” as in wham e\.g\. Wizwām">Wizwam<\/abbr>/);
+  assert.match(once, /Wizwam<\/abbr>\.com/);
+  assert.equal(sanitizeInline(once), once);
+  assert.doesNotMatch(renderPage(defaultSite(), "home"), /<abbr[^>]*>\s*<abbr/);
+});
+
+test("a word can keep hover text", () => {
+  const title = "“Wiz” as in wizard. “Wham” as in wham e.g. Wizwām";
+  const word = `<abbr title="${title}">Wizwam</abbr>`;
+  assert.equal(sanitizeInline(word), word);
+  assert.equal(sanitizeInline(word), sanitizeInline(word));
+  assert.equal(sanitizeInline('<abbr title="ok" onclick="alert(1)">Wizwam</abbr>'), '<abbr title="ok">Wizwam</abbr>');
+  assert.equal(sanitizeInline("<abbr>Wizwam</abbr>"), word);
+  const site = defaultSite();
+  site.home.blocks = [{ type: "h2", id: "wizwam", text: `Founder of ${word}` }];
+  const saved = normalizeSite(site).site;
+  assert.equal(saved.home.blocks[0].id, "wizwam");
+  assert.match(saved.home.blocks[0].text, /Wizwām/);
+  assert.match(renderPage(saved, "home"), new RegExp(`title="${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
 });
 
 test("the password box is not grouped with the two-factor label", () => {
